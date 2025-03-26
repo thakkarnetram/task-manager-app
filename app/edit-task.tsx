@@ -1,23 +1,33 @@
 // app/edit-task.tsx
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { TextInput, Button, Card } from 'react-native-paper';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateTask, deleteTask, updateTaskInput } from '@/redux/actions/taskSlice';
 import { RootState } from '@/redux';
-import { useRouter, useSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {ROOT_URL} from "@/constant";
 
 const API_URL = ROOT_URL;
 
 export default function EditTaskScreen() {
-    const { id } = useSearchParams<{ id: string }>();
+    const { id } = useLocalSearchParams<{ id: string }>();
     const dispatch = useDispatch();
     const router = useRouter();
     const task = useSelector((state: RootState) =>
         state.tasks.tasks.find(task => task.id === id)
     );
     const { title, description } = useSelector((state: RootState) => state.tasks.taskInput);
+    const [jwt, setJwt] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchToken = async () => {
+            const token = await AsyncStorage.getItem('token');
+            setJwt(token);
+        };
+        fetchToken();
+    }, []);
 
     useEffect(() => {
         if (!task) {
@@ -38,7 +48,10 @@ export default function EditTaskScreen() {
         try {
             const response = await fetch(`${API_URL}/tasks/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json' ,
+                    'Authorization' : `Bearer ${jwt}`
+                },
                 body: JSON.stringify({ title, description }),
             });
             if (!response.ok) throw new Error('Failed to update task');

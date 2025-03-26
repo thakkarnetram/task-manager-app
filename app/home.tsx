@@ -28,7 +28,7 @@ export default function HomeScreen() {
 
     const fetchTasks = async (token: string) => {
         try {
-            const response = await fetch(`https://far-mariejeanne-assignmentasks-310d5991.koyeb.app/tasks`, {
+            const response = await fetch(`${API_URL}/tasks`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
